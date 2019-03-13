@@ -92,8 +92,5 @@
 
 /* 轮播图 */
 .jd_layout .jd_banner{
-    width: 100%;
-}
-.jd_layout .jd_banner ul{
-    display: block;
+   margin-top: 44px;
 }

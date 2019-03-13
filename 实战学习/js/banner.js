@@ -4,9 +4,9 @@ $(function () {
     var html = '';
     for (let i = 0; i < list; i++) {
         if (i == 0) {
-            html += ' <span class="active" index='+i+'></span>';
+            html += ' <span class="active" data-point='+i+'></span>';
         } else {
-            html += ' <span class="" index=' + i +'></span>';
+            html += ' <span class="" data-point=' + i +'></span>';
         }    
     }
     // 设置圆点
@@ -22,7 +22,7 @@ $(function () {
 
 
     // 获取图片个数
-    var list = $('.jd_soilder li').length;
+    var totalLiS = $('.jd_soilder li').length;
     // 给每个li添加偏移量
     $('.jd_soilder li').each((i,item) => {
         $(item).css('left', left + '%');
@@ -32,8 +32,7 @@ $(function () {
     })
     // 动画时间
     time = $('.jd_soilder').data('sildertime');
-    var test = -100;   // 从li数组中第二个图片开始
-    var index = 1;   
+    var currentIndex = 1;   
     var interval = null;//计时器
     //启动计时器函数
     function start() {
@@ -47,33 +46,8 @@ $(function () {
     $(window).on('start', start).trigger('start');
     // 无缝轮播函数
     function animation() {
-        test -= 100;
-        index ++;        
-        if (index == (list - 1)) {
-            $('.jd_point span')[index-2].setAttribute("class", "");
-            $('.jd_point span')[0].setAttribute("class", "active"); 
-        }else{
-            $('.jd_point span')[index - 2].setAttribute("class", "");
-            $('.jd_point span')[index -1].setAttribute("class", "active");
-        }
-        $('.jd_soilder').css({
-            'transform': 'translateX(' + test + '%)',
-            'transition': 'all 0.3s ease'
-        });
-        if (index == list -1) {
-            test = -100;
-            index = 1;
-            // 最后一次过渡动画结束后,将定位设置为从li数组第二个位置开始.并去除动画.
-            // 绑定之前,显示的图片是放置在li最后一个位置的第一张图片,绑定函数之后,将定位改为li中真实的图片定位(即li中第二个位置的图片)
-            $('.jd_soilder').on('transitionend webkitTransitionEnd', function (e) {
-                $('.jd_soilder').css({
-                    'transform': 'translateX(' + test + '%)',
-                    'transition': 'none'
-                });
-                // 接触绑定的事件
-                $('.jd_soilder').off('transitionend webkitTransitionEnd');
-            });   
-        }
+        currentIndex ++;        
+        bannerAnimation();
     }  
     // 轮播图支持手动滑动
     // 1.获取手指在元素上滑动的方向
@@ -95,67 +69,63 @@ $(function () {
             // 有方向变化 this防止多轮播图同时滑动问题
             // startX > endX ? '下一页' : '上一页';
             if (startX > endX) {
-                var temp = touchIndex + 1;
-                     index = temp;
-                if (temp == list - 1) {
-                    $('.jd_point span')[(touchIndex - 1)].setAttribute("class", "");
-                    $('.jd_point span')[0].setAttribute("class", "active");
-                    $(this).css({
-                        'transform': 'translateX(-' + temp * 100 + '%)',
-                        'transition': 'all 0.3s ease'
-                    });
-                    $(this).on('transitionend webkitTransitionEnd', function (e) {
-                        test = -100;
-                        index = 1;
-                        $(this).css({
-                            'transform': 'translateX(-100%)',
-                            'transition': 'none'
-                        });
-                        // 接触绑定的事件
-                        $(this).off('transitionend webkitTransitionEnd');
-                    }); 
-                      
-                }else{
-                    test = -temp * 100;
-                    $('.jd_point span')[(touchIndex - 1)].setAttribute("class", "");
-                    $('.jd_point span')[(touchIndex)].setAttribute("class", "active");
-                    $(this).css({
-                        'transform': 'translateX(-' + temp*100+'%)',
-                        'transition': 'all 0.3s ease'
-                    });
-                }
+                currentIndex = touchIndex + 1;
             }else{
-                var temp = touchIndex -1;
-                    index = temp;
-                if (temp == 0) {
-                    var ins = parseInt(list - 3);
-                    $('.jd_point span')[ins].setAttribute("class", "active");
-                    $('.jd_point span')[0].setAttribute("class", "");
-                    $(this).css({
-                        'transform': 'translateX(0)',
-                        'transition': 'all 0.3s ease'
-                    });
-                    $(this).on('transitionend webkitTransitionEnd', function (e) {
-                        index = (list - 2);
-                        test = -(list - 2)*100;
-                        $(this).css({
-                            'transform': 'translateX(-' + (list -2)*100+'%)',
-                            'transition': 'none'
-                        });
-                        // 接触绑定的事件
-                        $(this).off('transitionend webkitTransitionEnd');
-                    });
-                } else {
-                    $('.jd_point span')[temp].setAttribute("class", "");
-                    $('.jd_point span')[(temp -1)].setAttribute("class", "active");
-                    $(this).css({
-                        'transform': 'translateX(-' + temp * 100 + '%)',
-                        'transition': 'all 0.3s ease'
-                    });
-                    test = -temp * 100;
-                }
+                currentIndex = touchIndex -1;
             }  
         }
+        bannerAnimation(true);
         interval = setInterval(animation, time);
     })
+    // 点击圆点的位置
+     var point = 0;
+    $('.jd_point span').on('click',function (e) {
+        point = parseInt(e.target.dataset.point);
+        $('.jd_point span')[currentIndex - 1].setAttribute("class", "");
+        $('.jd_point span')[point].setAttribute("class", "active");
+        currentIndex = point + 1;
+        $('.jd_soilder').css({
+            'transform': 'translateX(-' + currentIndex * 100 + '%)',
+            'transition': 'all 0.3s ease'
+        });
+    })
+    // 无缝轮播图 下一页动画
+    function bannerAnimation(prev){
+        if (currentIndex == 0) {
+            $('.jd_point span')[totalLiS - 3].setAttribute("class", "active");
+            $('.jd_point span')[0].setAttribute("class", "");
+        }else if (currentIndex == (totalLiS - 1)) {
+            $('.jd_point span')[currentIndex - 2].setAttribute("class", "");
+            $('.jd_point span')[0].setAttribute("class", "active");
+        }else {
+            if (prev) {
+                $('.jd_point span')[touchIndex - 1].setAttribute("class", "");
+                $('.jd_point span')[(touchIndex - 2)].setAttribute("class", "active");
+            }else{
+                $('.jd_point span')[currentIndex - 2].setAttribute("class", "");
+                $('.jd_point span')[currentIndex - 1].setAttribute("class", "active");
+            }
+        }
+        $('.jd_soilder').css({
+            'transform': 'translateX(-' + currentIndex*100 + '%)',
+            'transition': 'all 0.3s ease'
+        });
+        if (currentIndex == totalLiS - 1 || currentIndex == 0) {
+            if (currentIndex == 0) {
+                currentIndex = totalLiS - 2;
+            } else {
+                currentIndex = 1;
+            }
+            // 最后一次过渡动画结束后,将定位设置为从li数组第二个位置开始.并去除动画.
+            // 绑定之前,显示的图片是放置在li最后一个位置的第一张图片,绑定函数之后,将定位改为li中真实的图片定位(即li中第二个位置的图片)
+            $('.jd_soilder').on('transitionend webkitTransitionEnd', function (e) {
+                $('.jd_soilder').css({
+                    'transform': 'translateX(-' + currentIndex * 100 + '%)',
+                    'transition': 'none'
+                });
+                // 接触绑定的事件
+                $('.jd_soilder').off('transitionend webkitTransitionEnd');
+            });
+        }
+    }
 })
