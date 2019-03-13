@@ -6,7 +6,9 @@
 }
 .jd_banner ul{
     height: 100%;
-    position: relative;
+    width: 100%;
+    transform: translateX(-100%);
+    transition: all 0.3s ease 0s;
 }
 .jd_banner ul li{
     width: 100%;
@@ -16,10 +18,9 @@
 }
 .jd_banner ul li img{
     height: 100%;
+    width: 100%; 
 }
-.jd_banner ul li:first-child{
-    left: 0;
-}
+
 .jd_banner .jd_point{
     width: 100%;
     box-sizing: border-box;
